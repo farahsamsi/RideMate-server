@@ -4,7 +4,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_pass}@cluster0.tu4i6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // middlewares
@@ -35,10 +35,18 @@ async function run() {
       res.send(result);
     });
 
-    // get data for route
+    // get data for cars route
     app.get("/cars", async (req, res) => {
       const cursor = carsCollection.find();
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // get operation to find single car using id
+    app.get("/cars/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await carsCollection.findOne(query);
       res.send(result);
     });
 
@@ -47,6 +55,14 @@ async function run() {
       const email = req.params.email;
       const query = { userEmail: email };
       const result = await carsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // delete a car from received _id
+    app.delete("/cars/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await carsCollection.deleteOne(query);
       res.send(result);
     });
 
