@@ -101,6 +101,28 @@ async function run() {
       const newCarBooking = req.body;
       console.log(newCarBooking);
       const result = await carsBookedCollection.insertOne(newCarBooking);
+
+      // getting bookingCount
+      const id = newCarBooking.car_id;
+      const query = { _id: new ObjectId(id) };
+      const car = await carsCollection.findOne(query);
+      let newCount = 0;
+      if (car.bookingCount) {
+        newCount = car.bookingCount + 1;
+      } else {
+        newCount = 1;
+      }
+
+      // updating bookingCount
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          bookingCount: newCount,
+        },
+      };
+
+      const updatedResult = await carsCollection.updateOne(filter, updatedDoc);
+
       res.send(result);
     });
 
