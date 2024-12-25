@@ -133,6 +133,31 @@ async function run() {
       res.send(result);
     });
 
+    // get operation to find single booked car using id
+    app.get("/carsBooking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await carsBookedCollection.findOne(query);
+      res.send(result);
+    });
+
+    // delete booking using received _id
+    app.delete("/carsBooking/:id", async (req, res) => {
+      const idDelete = req.params.id;
+      const queryDelete = { _id: new ObjectId(idDelete) };
+      const result = await carsBookedCollection.deleteOne(queryDelete);
+
+      res.send(result);
+    });
+
+    // get operation to find specific email user cars
+    app.get("/carsBooking/myBookings/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { bookedBy: email };
+      const result = await carsBookedCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
