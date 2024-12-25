@@ -26,7 +26,9 @@ async function run() {
     // await client.connect();
 
     const carsCollection = client.db("carsDB").collection("cars");
+    const carsBookedCollection = client.db("carsDB").collection("carsBooked");
 
+    // _______________Cars API_______________
     // create data from client side
     app.post("/cars", async (req, res) => {
       const newCar = req.body;
@@ -89,6 +91,23 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await carsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // ___________________BOOKINGS API_______
+
+    // create data from client side
+    app.post("/carsBooking", async (req, res) => {
+      const newCarBooking = req.body;
+      console.log(newCarBooking);
+      const result = await carsBookedCollection.insertOne(newCarBooking);
+      res.send(result);
+    });
+
+    // get data for carsBooking route
+    app.get("/carsBooking", async (req, res) => {
+      const cursor = carsBookedCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
