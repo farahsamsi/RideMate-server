@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -8,8 +10,36 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_pass}@cluster0.tu4i6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://ridemate-5d791.web.app",
+      "https://ride-mate.netlify.app",
+      "https://ridemate-5d791.firebaseapp.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
+
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized access." });
+  }
+  // verify token
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized access." });
+    }
+    req.user = decoded;
+
+    next();
+  });
+};
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,6 +57,30 @@ async function run() {
 
     const carsCollection = client.db("carsDB").collection("cars");
     const carsBookedCollection = client.db("carsDB").collection("carsBooked");
+
+    // __________Auth related API___________
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "5h",
+      });
+
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        })
+        .send({ success: true });
+    });
+
+    app.post("/logout", (req, res) => {
+      res
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        })
+        .send({ success: true });
+    });
 
     // _______________Cars API_______________
     // create data from client side
@@ -56,6 +110,11 @@ async function run() {
     app.get("/cars/myCars/:email", async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
+
+      // if (req.user.email !== req.params.email) {
+      //   return res.status(403), send({ message: "Forbidden access" });
+      // }
+
       const result = await carsCollection.find(query).toArray();
       res.send(result);
     });
