@@ -99,29 +99,35 @@ async function run() {
     // create data from client side
     app.post("/carsBooking", async (req, res) => {
       const newCarBooking = req.body;
-      console.log(newCarBooking);
       const result = await carsBookedCollection.insertOne(newCarBooking);
 
-      // getting bookingCount
-      const id = newCarBooking.car_id;
-      const query = { _id: new ObjectId(id) };
-      const car = await carsCollection.findOne(query);
-      let newCount = 0;
-      if (car.bookingCount) {
-        newCount = car.bookingCount + 1;
-      } else {
-        newCount = 1;
+      {
+        // getting bookingCount
+        // const id = newCarBooking.car_id;
+        // const query = { _id: new ObjectId(id) };
+        // const car = await carsCollection.findOne(query);
+        // let newCount = 0;
+        // if (car.bookingCount) {
+        //   newCount = car.bookingCount + 1;
+        // } else {
+        //   newCount = 1;
+        // }
+        // // updating bookingCount
+        // const filter = { _id: new ObjectId(id) };
+        // const updatedDoc = {
+        //   $set: {
+        //     bookingCount: newCount,
+        //   },
+        // };
       }
 
-      // updating bookingCount
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          bookingCount: newCount,
-        },
-      };
+      // increase booking count in carsCollection
 
-      const updatedResult = await carsCollection.updateOne(filter, updatedDoc);
+      const filter = { _id: new ObjectId(newCarBooking.car_id) };
+      const update = {
+        $inc: { bookingCount: 1 },
+      };
+      const updateBookingCount = await carsCollection.updateOne(filter, update);
 
       res.send(result);
     });
