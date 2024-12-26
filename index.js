@@ -164,6 +164,26 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/carsBooking/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateCarBooking = req.body;
+      const update = {
+        $set: {
+          startDateTime: updateCarBooking.startDateTime,
+          endDateTime: updateCarBooking.endDateTime,
+          subTotal: updateCarBooking.subTotal,
+        },
+      };
+      const result = await carsBookedCollection.updateOne(
+        filter,
+        update,
+        options
+      );
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
