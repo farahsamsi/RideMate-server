@@ -109,13 +109,13 @@ async function run() {
     });
 
     // get operation to find specific email user cars
-    app.get("/cars/myCars/:email", async (req, res) => {
+    app.get("/cars/myCars/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
 
-      // if (req.user.email !== req.params.email) {
-      //   return res.status(403), send({ message: "Forbidden access" });
-      // }
+      if (req.user.email !== req.params.email) {
+        return res.status(403), send({ message: "Forbidden access" });
+      }
 
       const result = await carsCollection.find(query).toArray();
       res.send(result);
@@ -218,9 +218,14 @@ async function run() {
     });
 
     // get operation to find specific email user cars
-    app.get("/carsBooking/myBookings/:email", async (req, res) => {
+    app.get("/carsBooking/myBookings/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { bookedBy: email };
+
+      if (req.user.email !== req.params.email) {
+        return res.status(403), send({ message: "Forbidden access" });
+      }
+
       const result = await carsBookedCollection.find(query).toArray();
       res.send(result);
     });
